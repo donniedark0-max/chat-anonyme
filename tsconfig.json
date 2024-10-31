@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+      "target": "es5",                          // Especifica el nivel de ECMAScript al que quieres compilar
+      "lib": ["dom", "dom.iterable", "esnext"], // Especifica las bibliotecas que se incluirán
+      "allowJs": true,                          // Permite archivos .js en el proyecto
+      "skipLibCheck": true,                     // Salta la verificación de tipo de archivos de declaración
+      "strict": true,                           // Activa todas las opciones de verificación estricta
+      "forceConsistentCasingInFileNames": true, // Asegura un uso consistente de mayúsculas y minúsculas
+      "noEmit": true,                           // No emite archivos de salida
+      "esModuleInterop": true,                  // Permite la interoperabilidad entre módulos
+      "module": "commonjs",                     // Establece el sistema de módulos a usar
+      "moduleResolution": "node",                // Mecanismo de resolución de módulos
+      "resolveJsonModule": true,                // Permite la importación de archivos JSON
+      "isolatedModules": true,                   // Asegura que cada archivo sea un módulo independiente
+      "jsx": "react-jsx"                        // Configura el soporte para JSX
+    },
+    "include": ["src"]                          // Especifica las carpetas que deben incluirse en la compilación
+  }
