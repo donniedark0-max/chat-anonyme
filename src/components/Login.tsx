@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí iría tu lógica para manejar el login, como una llamada a una API
-    console.log('Username:', username);
-    console.log('Password:', password);
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        email: username,
+        password,
+      });
+      localStorage.setItem('token', response.data.token);
+      window.location.href = '/chatroom';
+    } catch (error) {
+      console.error('Error al iniciar sesión', error);
+    }
   };
 
   return (

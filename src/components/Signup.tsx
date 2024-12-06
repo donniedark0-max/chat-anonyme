@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
-
+import axios from 'axios';
 const Signup: React.FC = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí iría tu lógica para manejar el registro, como una llamada a una API
-    console.log('Username:', username);
-    console.log('Email:', email);
-    console.log('Password:', password);
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/signup', {
+        username,
+        email,
+        password,
+      });
+      localStorage.setItem('token', response.data.token);
+      window.location.href = '/chatroom';
+    } catch (error) {
+      console.error('Error al iniciar sesión', error);
+    }
   };
 
   return (
@@ -54,9 +61,9 @@ const Signup: React.FC = () => {
           />
         </div>
         <div className="w-full flex justify-center">
-        <button type="submit" className="bg-red-200 hover:bg-black text-white font-bold py-2 px-4 rounded-3xl">
-          Crear Cuenta
-        </button>
+          <button type="submit" className="bg-red-200 hover:bg-black text-white font-bold py-2 px-4 rounded-3xl">
+            Crear Cuenta
+          </button>
         </div>
       </form>
       <p className="text-red-300 text-xs mt-4">
