@@ -1,30 +1,59 @@
+// src/components/ChatRoom.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../utils/axiosConfig';
+
 
 const ChatRoom: React.FC = () => {
   const [message, setMessage] = useState('');
-  const chatContainerRef = useRef<HTMLDivElement | null>(null);
-  const socket = useRef(io('http://localhost:3000')).current; // Cambia la URL si es necesario
+  const [messages, setMessages] = useState<string[]>([]);
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+
+  const socket = useRef<Socket | null>(null);
 
   useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    // Inicializar Socket.io con el token
+    socket.current = io('http://localhost:5002', { // Cambiado a puerto 5002
+      auth: {
+        token: token,
+      },
+    });
+
     // Manejar la recepción de mensajes
-    socket.on('chat message', (msg: string) => {
-      if (chatContainerRef.current) {
-        const messageItem = document.createElement('p');
-        messageItem.textContent = msg;
-        chatContainerRef.current.appendChild(messageItem);
-      }
+    socket.current.on('chat message', (msg: string) => {
+      setMessages((prevMessages) => [...prevMessages, msg]);
+    });
+
+    // Manejar la recepción de mensajes históricos
+    socket.current.on('initial messages', (msgs: string[]) => {
+      setMessages(msgs);
+    });
+
+    // Manejar errores de Socket.io
+    socket.current.on('error', (err: string) => {
+      console.error('Socket error:', err);
+      alert(err);
+      navigate('/login');
     });
 
     return () => {
-      socket.disconnect(); // Desconectar socket al desmontar el componente
+      socket.current?.disconnect(); // Desconectar socket al desmontar el componente
     };
-  }, [socket]);
+  }, [token, navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    socket.emit('chat message', message);
-    setMessage(''); // Limpiar el input después de enviar
+    if (socket.current && message.trim() !== '') {
+      socket.current.emit('chat message', message.trim());
+      setMessage(''); // Limpiar el input después de enviar
+    }
   };
 
   return (
@@ -38,8 +67,10 @@ const ChatRoom: React.FC = () => {
       />
 
       {/* Contenedor del chat */}
-      <div id="chat-container" ref={chatContainerRef} className="overflow-y-auto h-96 w-full p-4 bg-black">
-        {/* Aquí se irán añadiendo los mensajes */}
+      <div id="chat-container" className="overflow-y-auto h-96 w-full p-4 bg-black">
+      {messages.map((msg, index) => (
+        <p key={index}>{msg}</p>
+      ))}
       </div>
 
       {/* Formulario para enviar mensajes */}

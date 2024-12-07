@@ -1,30 +1,30 @@
-import { RequestHandler } from 'express';
-import Message from '../models/Message'; // Asegúrate de tener este modelo creado
+import mongoose, { Schema, Document, PopulatedDoc } from 'mongoose';
+// server/src/models/Message.ts
+import { IUser } from '../models/User';
 
-export const sendMessage: RequestHandler = async (req, res) => {
-  try {
-    const { content } = req.body;
-    const userId = req.userId; // Este viene del middleware de autenticación
+export interface IMessage extends Document {
+  content: string;
+  userId: PopulatedDoc<mongoose.Types.ObjectId | IUser>;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-    const message = await Message.create({
-      content,
-      userId,
-    });
+const MessageSchema = new Schema({
+  content: {
+    type: String,
+    required: true,
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+}, {
+  timestamps: true,
+});
 
-    res.status(201).json({ message: 'Mensaje enviado exitosamente', data: message });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al enviar el mensaje', error });
-  }
-};
+export interface IMessagePopulated extends IMessage {
+  userId: IUser;
+}
 
-export const getMessages: RequestHandler = async (req, res) => {
-  try {
-    const messages = await Message.find()
-      .sort({ createdAt: -1 })
-      .populate('userId', 'username'); // Asumiendo que quieres también la info del usuario
-
-    res.json({ messages });
-  } catch (error) {
-    res.status(500).json({ message: 'Error al obtener los mensajes', error });
-  }
-};
+export default mongoose.model<IMessage>('Message', MessageSchema);

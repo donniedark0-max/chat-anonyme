@@ -1,21 +1,29 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      const response = await axios.post('http://localhost:5002/api/auth/login', {
         email: username,
         password,
       });
-      localStorage.setItem('token', response.data.token);
-      window.location.href = '/chatroom';
-    } catch (error) {
-      console.error('Error al iniciar sesión', error);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        navigate('/chatroom');
+      } else {
+        alert('Login fallido');
+      }
+    } catch (error: any) {
+      console.error('Error al iniciar sesión', error.response?.data?.message || error.message);
+      alert(error.response?.data?.message || 'Error al iniciar sesión');
     }
   };
 
@@ -28,6 +36,7 @@ const Login: React.FC = () => {
       />
       <h2 className="text-yellow-50 text-3xl text-center">Iniciar Sesión</h2>
       <p className="text-yellow-50 text-center mt-2">Inicia sesión para mandar tu primer o último mensaje</p>
+      {error && <p className="text-red-500 text-center mt-2">{error}</p>}
       <form onSubmit={handleSubmit} className="bg-white text-black px-8 pt-6 pb-8 rounded-3xl shadow-md mt-4">
         <div className="mb-4">
           <input

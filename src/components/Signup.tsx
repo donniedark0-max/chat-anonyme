@@ -1,24 +1,35 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
 const Signup: React.FC = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/signup', {
+      const response = await axios.post('http://localhost:5002/api/auth/register', {
         username,
         email,
         password,
       });
-      localStorage.setItem('token', response.data.token);
-      window.location.href = '/chatroom';
-    } catch (error) {
-      console.error('Error al iniciar sesión', error);
+
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        navigate('/chatroom');
+      } else {
+        setError('Registro fallido');
+      }
+    } catch (error: any) {
+      console.error('Error al crear cuenta', error.response?.data?.message || error.message);
+      setError(error.response?.data?.message || 'Error al crear cuenta');
     }
   };
+
 
   return (
     <div className="signup-container bg-black text-white flex flex-col items-center justify-center min-h-screen">
@@ -29,6 +40,7 @@ const Signup: React.FC = () => {
       />
       <h2 className="text-white text-3xl text-center">Sign Up</h2>
       <p className="text-yellow-50 text-center mt-2">Crea tu cuenta para empezar a mandar mensajes</p>
+      {error && <p className="text-red-500 text-center mt-2">{error}</p>}
       <form onSubmit={handleSubmit} className="bg-white text-black px-8 pt-6 pb-8 rounded-3xl shadow-md mt-4">
         <div className="mb-4">
           <input
