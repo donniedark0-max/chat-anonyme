@@ -1,12 +1,12 @@
 import mongoose, { Schema, Document, PopulatedDoc } from 'mongoose';
+import { IUser } from './User';
 
 export interface IMessage extends Document {
   content: string;
-  userId: PopulatedDoc<mongoose.Types.ObjectId | IUser>;
+  userId: PopulatedDoc<IUser & mongoose.Document>;
   createdAt: Date;
   updatedAt: Date;
 }
-import { IUser } from './User';
 
 const MessageSchema = new Schema({
   content: {
@@ -23,6 +23,7 @@ const MessageSchema = new Schema({
 });
 
 export interface IMessagePopulated extends IMessage {
-  userId: IUser;
+  userId: IUser; // Esto asegura que userId es del tipo IUser cuando se utiliza populate
 }
+
 export default mongoose.model<IMessage>('Message', MessageSchema);

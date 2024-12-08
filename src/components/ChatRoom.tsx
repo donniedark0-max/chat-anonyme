@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../utils/axiosConfig';
 
 
 const ChatRoom: React.FC = () => {
@@ -20,7 +19,7 @@ const ChatRoom: React.FC = () => {
     }
 
     // Inicializar Socket.io con el token
-    socket.current = io('http://localhost:5002', { // Cambiado a puerto 5002
+    socket.current = io('http://localhost:5001', { // Cambiado a puerto 5002
       auth: {
         token: token,
       },

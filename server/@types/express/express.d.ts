@@ -1,9 +1,11 @@
 // server/src/types/express.d.ts
-import { IUser } from '../models/User';
+import { IUser } from '../src/models/User';
 
-declare namespace Express {
-  export interface Request {
-    userId?: string;
-    user?: IUser; // Opcional: Puedes agregar el usuario completo si lo prefieres
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+      user?: IUser;
+    }
   }
 }

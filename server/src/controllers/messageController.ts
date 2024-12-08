@@ -1,30 +1,46 @@
-import mongoose, { Schema, Document, PopulatedDoc } from 'mongoose';
-// server/src/models/Message.ts
-import { IUser } from '../models/User';
+// server/src/controllers/messageController.ts
+import { RequestHandler } from 'express';
+import Message, { IMessagePopulated } from '../models/Message';
+import User, { IUser } from '../models/User';
+export const sendMessage: RequestHandler = async (req, res) => {
+  try {
+    const { content } = req.body;
+    const userId = req.userId;
 
-export interface IMessage extends Document {
-  content: string;
-  userId: PopulatedDoc<mongoose.Types.ObjectId | IUser>;
-  createdAt: Date;
-  updatedAt: Date;
-}
+    if (!userId) {
+      res.status(400).json({ message: 'Usuario no autenticado' });
+      return;
+    }
 
-const MessageSchema = new Schema({
-  content: {
-    type: String,
-    required: true,
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-}, {
-  timestamps: true,
-});
+    const message = await Message.create({
+      content,
+      userId,
+    });
 
-export interface IMessagePopulated extends IMessage {
-  userId: IUser;
-}
+    res.status(201).json({ message: 'Mensaje enviado exitosamente', data: message });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al enviar el mensaje', error });
+  }
+};
 
-export default mongoose.model<IMessage>('Message', MessageSchema);
+export const getMessages: RequestHandler = async (req, res) => {
+  try {
+    const messages = await Message.find()
+      .sort({ createdAt: -1 })
+      .populate<{ userId: IUser }>('userId', 'username')
+      .limit(100)
+      .lean<IMessagePopulated[]>(); // Cambiado de IMessagePopulated a IMessagePopulated[]
+
+    if (!messages) {
+      res.json({ messages: [] });
+      return;
+    }
+
+    const formattedMessages = messages.map((msg) => `${msg.userId.username}: ${msg.content}`);
+    res.json({ messages: formattedMessages.reverse() });
+    return;
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener los mensajes', error });
+    return;
+  }
+};

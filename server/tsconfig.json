@@ -11,16 +11,15 @@
     "strict": true,
     "typeRoots": [
       "./node_modules/@types",
-      "./@types",
-      "./src/types" 
+      "./@types" 
 
     ],
     "types": ["node", "express"] 
   },
   "include": [
-    "src/**/*.ts",
+    "src/**/*",
     "@types/**/*" 
-  ],
+, "express"  ],
   "exclude": [
     "node_modules"
   ]

@@ -7,7 +7,7 @@ import authRoutes from './routes/authRoutes';
 import messageRoutes from './routes/messageRoutes';
 import { Server } from 'socket.io';
 import http from 'http';
-import User from './models/User';
+import User, { IUser} from './models/User';
 import Message from './models/Message';
 import jwt from 'jsonwebtoken';
 import { IMessagePopulated } from './models/Message';
@@ -15,6 +15,9 @@ import { IMessagePopulated } from './models/Message';
 dotenv.config();
 connectDB();
 
+if (!process.env.ACCESS_TOKEN_SECRET) {
+  throw new Error('ACCESS_TOKEN_SECRET no está definido. Verifica tu archivo .env');
+}
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -46,20 +49,22 @@ io.use((socket, next) => {
   }
 });
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   console.log(`Usuario conectado: ${socket.id}`);
 
-  // Enviar mensajes históricos al cliente que se conecta
-  Message.find()
-    .sort({ createdAt: -1 })
-    .populate('userId', 'username')
-    .limit(100)
-    .exec((err: any, messages: IMessagePopulated[]) => { // Tipar correctamente los parámetros
-      if (!err && messages) {
-        const formattedMessages = messages.map((msg) => `${msg.userId.username}: ${msg.content}`);
-        socket.emit('initial messages', formattedMessages.reverse());
-      }
-    });
+ // Corrige el resultado para asegurar que TypeScript lo reconozca como un array
+const messages = await Message.find()
+.sort({ createdAt: -1 })
+.populate<{ userId: IUser }>('userId', 'username')
+.limit(100)
+.lean<IMessagePopulated[]>(); // Cambiado de IMessagePopulated a IMessagePopulated[]
+
+    if (messages && messages.length > 0) {
+      const formattedMessages = messages.map((msg) => `${msg.userId.username}: ${msg.content}`);
+      socket.emit('initial messages', formattedMessages.reverse());
+    } else {
+      socket.emit('initial messages', []);
+    }
 
   // Manejar la recepción de mensajes desde el cliente
   socket.on('chat message', async (msg: string) => {
@@ -87,5 +92,5 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5002;  // Cambiamos el puerto a 5002
+const PORT = process.env.PORT || 5001;  // Cambiamos el puerto a 5002
 server.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
