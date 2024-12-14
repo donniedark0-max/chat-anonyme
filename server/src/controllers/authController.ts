@@ -58,7 +58,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       { expiresIn: '1h' }
     );
 
-    res.json({ message: 'Login exitoso', token });
+    res.json({ message: 'Login exitoso', token, userId: user._id });
   } catch (error) {
     res.status(500).json({ message: 'Error en el login', error });
   }

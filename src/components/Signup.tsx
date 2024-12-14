@@ -20,6 +20,7 @@ const Signup: React.FC = () => {
 
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userId', response.data.userId); // GUARDAR EL USERID
         navigate('/chatroom');
       } else {
         setError('Registro fallido');
